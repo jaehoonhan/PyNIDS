@@ -24,3 +24,6 @@ Optional arguments:
                
 ```
 pcap file will be overwritten at every scan. Make a duplicate if you wish to analyze a scan in the future
+- sample output:
+
+![alt text](https://i.imgur.com/nDLnRNI.jpg)
