@@ -20,6 +20,7 @@ sudo python3 sniffer.py [INT]
 Optional argumentS:
  INT            Set a number of packets to sniff before exiting
                 otherwise set to infinity.
+                
 ^c              Exit program
 ```
 pcap file will be overwritten at every scan. Make a duplicate if you wish to analyze a scan in the future
