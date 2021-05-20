@@ -9,13 +9,13 @@ from general.config import *
 from general.pcap import Pcap
 from general.textwrapper import format_multi_line
 
-if len(sys.argv) == 2:
-    count = int(sys.argv[1])
-else:
-    count = float("inf")
 
 def main():
 
+    if len(sys.argv) == 2:
+        count = int(sys.argv[1])
+    else:
+        count = float("inf")
 
     pcap = Pcap('capture.pcap')
     # Make a socket connection to make a copy of raw packet info
