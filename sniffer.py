@@ -68,7 +68,7 @@ def main():
                       tcp.flag_syn, tcp.flag_fin))
                  
                 if len(tcp.data) > 0:
-                    if tcp.src_port == 80 or tcp.dest_port == 80:
+                    if tcp.src_port != 80 or tcp.dest_port != 80:
                         print(TAB_3 + 'TCP Data:')
                         print(format_multi_line(DATA_TAB_3, tcp.data))
 
