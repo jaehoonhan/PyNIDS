@@ -16,11 +16,11 @@
 git clone https://github.com/jaehoonhan/PySniff.git
 cd PySniff
 sudo python3 sniffer.py [INT]
+^c    (Exit program)
 
-Optional argumentS:
+Optional arguments:
  INT            Set a number of packets to sniff before exiting
                 otherwise set to infinity.
-                
-^c              Exit program
+               
 ```
 pcap file will be overwritten at every scan. Make a duplicate if you wish to analyze a scan in the future
