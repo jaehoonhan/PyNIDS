@@ -1,88 +1,87 @@
 import socket
-import struct
-import textwrap
+from general.pcap import Pcap
+from general.textwrapper import format_multi_line
+from protocols.ethernet import Ethernet
+from protocols.ipv4 import IPv4
+from protocols.icmp import ICMP
+from protocols.tcp import TCP
+from protocols.udp import UDP
+
+TAB_1 = '\t - '
+TAB_2 = '\t\t - '
+TAB_3 = '\t\t\t - '
+TAB_4 = '\t\t\t\t - '
+
+DATA_TAB_1 = '\t   '
+DATA_TAB_2 = '\t\t   '
+DATA_TAB_3 = '\t\t\t   '
+DATA_TAB_4 = '\t\t\t\t   '
 
 def main():
+    
+    pcap = Pcap('capture.pcap')
     # Make a socket connection to make a copy of raw packet info
-    # *AF_PACKET is a socket type exlusive to Linux. 
+    # *AF_PACKET is a socket type exlusive to Linux.
     conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
 
     while True:
-        raw_data, addr = conn.recvfrom(65536) # Buffer size is 65536 (max)
-        dest_mac, src_mac, eth_proto, data = ethernet_frame(raw_data)
-        print('\nEthernet Frame: ')
-        print('Destination: {}, Source: {}, Protocol: {}'.format())
+        raw_data, addr = conn.recvfrom(65535)
+        pcap.write(raw_data)
+        eth = Ethernet(raw_data)
+
+        print('\nEthernet Frame:')
+        print(TAB_1 + 'Destination: {}, Source: {}, Protocol: {}'.format(eth.dest_mac,
+              eth.src_mac, eth.proto))
+
+        # IPv4
+        if eth.proto == 8:
+            ipv4 = IPv4(eth.data)
+            print(TAB_1 + 'IPv4 Packet:')
+            print(TAB_2 + 'Version: {}, Header Length: {}, TTL: {},'.format(
+                ipv4.version, ipv4.header_length, ipv4.ttl))
+            print(TAB_2 + 'Protocol: {}, Source: {}, Target: {}'.format(ipv4.proto,
+                  ipv4.src, ipv4.target))
+
+            # ICMP
+            if ipv4.proto == 1:
+                icmp = ICMP(ipv4.data)
+                print(TAB_1 + 'ICMP Packet:')
+                print(TAB_2 + 'Type: {}, Code: {}, Checksum: {},'.format(icmp.type,
+                      icmp.code, icmp.checksum))
+                print(TAB_2 + 'ICMP Data:')
+                print(format_multi_line(DATA_TAB_3, icmp.data))
+
+            # TCP
+            elif ipv4.proto == 6:
+                tcp = TCP(ipv4.data)
+                print(TAB_1 + 'TCP Segment:')
+                print(
+                    TAB_2 + 'Source Port: {}, Destination Port: {}'.format(tcp.src_port, tcp.dest_port))
+                print(
+                    TAB_2 + 'Sequence: {}, Acknowledgment: {}'.format(tcp.sequence, tcp.acknowledgment))
+                print(TAB_2 + 'Flags:')
+                print(TAB_3 + 'URG: {}, ACK: {}, PSH: {}'.format(tcp.flag_urg,
+                      tcp.flag_ack, tcp.flag_psh))
+                print(TAB_3 + 'RST: {}, SYN: {}, FIN:{}'.format(tcp.flag_rst,
+                      tcp.flag_syn, tcp.flag_fin))
+
+            # UDP
+            elif ipv4.proto == 17:
+                udp = UDP(ipv4.data)
+                print(TAB_1 + 'UDP Segment:')
+                print(TAB_2 + 'Source Port: {}, Destination Port: {}, Length: {}'.format(
+                    udp.src_port, udp.dest_port, udp.size))
+
+            # Other IPv4
+            else:
+                print(TAB_1 + 'Other IPv4 Data:')
+                print(format_multi_line(DATA_TAB_2, ipv4.data))
+
+        else:
+            print('Ethernet Data:')
+            print(format_multi_line(DATA_TAB_1, eth.data))
+
+    pcap.close()
 
 
-# Unpack ethernet frame
-def ethernet_frame(data):
- 
-    # Take the first 14 bytes of data (frame header)
-    # Convert the bytes from big to little endian with !
-    # Take the first 6 bytes, 6 bytes, and an unsigned short
-    # These values are the destination MAC, source MAC, and EtherType
-    dest_mac, src_mac, proto = struct.unpack('! 6s 6s H', data[:14])
-
-    return get_mac_addr(dest_mac), get_mac_addr(src_mac), socket.htons(proto), data[14:]
-
-
-# Return properly formatted MAC address
-def get_mac_addr(bytes_addr):
-    # Format MAC address bytes into two digits joined by colons
-    bytes_str = map('{:02X}'.format, bytes_addr)
-    return ':'.join(bytes_str)
-
-
-# Unpack IPV4 packet
-def ipv4_packet(data):
-    version_header_length = data[0]
-    # Bit shift Ip by 4 bits to get the version
-    version = version_header_length >> 4
-    # Header size = 20 or 26 bytes
-    # Bit AND with b1111 to get header length
-    header_length = (version_header_length & 15)
-    # IP packet mandatory header info is within first 20 bytes of packet
-    # According to the IP packet structure we can manipulate the binary data to get the following:
-    #   - Pad (ignore) the first 8 bytes (First two 'rows' of header)
-    #   - Unpack next 1 byte (Time to Live) as Unsigned Char
-    #   - Unpack next 1 byte (Protocal number) as Unsigned Char
-    #   - Pad next 2 bytes (Header Checksum)
-    #   - Unpack next 4 byte (Source IP) as char array
-    #   - Unpack next 4 byte (Destination IP) as char array
-    ttl, proto, src, target = struct.unpack('! 8x B B 2x 4s 4s', data[:20])
-    return version, header_length, ttl, proto, ipv4_format(src), ipv4_format(target), data[header_length:]
-
-# Returns properly formatted IPv4 address
-def ipv4_format(addr):
-    return '.'.join(map(str, ))
-
-
-# Unpack ICMP Packet
-def icmp_packet(data):
-    # ICMP Header size = 4 bytes
-    #   - Format first 1 bstyte (TCMP Type) as unsigned char
-    #   - Format next 1 byte (Code) as unsigned char
-    #   - Format next 2 bytes (Checksum) as usigned short
-    # (We keep checksum here because it is useful for network analysis)
-    icmp_type, code, checksum = struct.unpack('! B B H', data[:4])
-    return icmp_type, code, checksum, data[4:]
-
-# Unpack TCP segment
-def tcp_segment(data):
-    # TCP header size = 20 or 26 bytes
-    #   - Unpack first 2 bytes (Source port) as unsigned short
-    #   - Unpack next 2 bytes (Des_port) as unsigned short
-    #   - Unpack next 4 bytes (Sequence) as unsigned long
-    #   - Unpack next 4 bytes (ACK)
-    #   - Unpack next 2 bytes (Offset flags)
-    (src_port, dest_port, sequence, acknowledgement, offset_reserved_flags) = struct.unpack('! H H L L H', data[:14])
-    # Manipulate bits in offset to get flags
-    offset = (offset_reserved_flags >> 12) * 4
-    flag_urg = (offset_reserved_flags & 32) >> 5
-    flag_ack = (offset_reserved_flags & 16) >> 4
-    flag_psh = (offset_reserved_flags & 8) >> 3
-    flag_rst = (offset_reserved_flags & 4) >> 2
-    flag_syn = (offset_reserved_flags & 2) >> 1
-    flag_fin = (offset_reserved_flags & 1)
-    return src_port, dest_port, sequence, acknowledgement, flag_urg, flag_ack, flag_psh, flag_rst, flag_syn, flag_fin
-
+main()
