@@ -22,7 +22,7 @@ def main():
     # *AF_PACKET is a socket type exlusive to Linux.
     conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
 
-    while count != 0:
+    while count > 0:
         raw_data, addr = conn.recvfrom(65535)
         pcap.write(raw_data)
         eth = Ethernet(raw_data)
