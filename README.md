@@ -12,7 +12,7 @@
 
 ## Usage
 
-```shell
+```
 git clone https://github.com/jaehoonhan/PySniff.git
 cd PySniff
 sudo python3 sniffer.py [INT]
