@@ -1,32 +1,28 @@
 import socket
-from general.pcap import Pcap
-from general.textwrapper import format_multi_line
+import sys
 from protocols.ethernet import Ethernet
 from protocols.ipv4 import IPv4
 from protocols.icmp import ICMP
 from protocols.tcp import TCP
 from protocols.udp import UDP
+from general.config import *
+from general.pcap import Pcap
+from general.textwrapper import format_multi_line
 
-line_width = 60
-LINEBREAK = ''.join(['_' for _ in range(line_width)])
-TAB_1 = '   - '
-TAB_2 = '       - '
-TAB_3 = '           - '
-TAB_4 = '               - '
-
-DATA_TAB_1 = '    '
-DATA_TAB_2 = '         '
-DATA_TAB_3 = '             '
-DATA_TAB_4 = '                 '
+if len(sys.argv) == 2:
+    count = int(sys.argv[1])
+else:
+    count = float("inf")
 
 def main():
-    
+
+
     pcap = Pcap('capture.pcap')
     # Make a socket connection to make a copy of raw packet info
     # *AF_PACKET is a socket type exlusive to Linux.
     conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
 
-    while True:
+    while count != 0:
         raw_data, addr = conn.recvfrom(65535)
         pcap.write(raw_data)
         eth = Ethernet(raw_data)
@@ -87,7 +83,10 @@ def main():
         else:
             print('Ethernet Data:')
             print(format_multi_line(DATA_TAB_1, eth.data))
+        
+        count -= 1
 
+    print("Packet capture complete.")
     pcap.close()
 
 
