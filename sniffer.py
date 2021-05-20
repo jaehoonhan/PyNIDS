@@ -6,7 +6,8 @@ from protocols.icmp import ICMP
 from protocols.tcp import TCP
 from protocols.udp import UDP
 from general.config import *
-from general.pcap import Pcap
+from ids.pcap import Pcap
+from ids.IP_scan import IP_Scan
 from general.textwrapper import format_multi_line
 
 
@@ -18,7 +19,7 @@ def main():
         count = float("inf")
 
     pcap = Pcap('capture.pcap')
-    # Make a socket connection to make a copy of raw packet info
+    ip_scanner = IP_Scan('ids/bad_ips.txt')
     # *AF_PACKET is a socket type exlusive to Linux.
     conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
 
@@ -33,7 +34,10 @@ def main():
 
         # IPv4
         if eth.proto == 8:
+
             ipv4 = IPv4(eth.data)
+            ip_scanner.check_bad_ip(ipv4)
+
             print(TAB_1 + 'IPv4 Packet:')
             print(TAB_2 + 'Version: {}, Header Length: {}, TTL: {},'.format(
                 ipv4.version, ipv4.header_length, ipv4.ttl))
@@ -51,6 +55,7 @@ def main():
 
             # TCP
             elif ipv4.proto == 6:
+
                 tcp = TCP(ipv4.data)
                 print(TAB_2 + 'TCP Segment:')
                 print(
@@ -70,6 +75,7 @@ def main():
 
             # UDP
             elif ipv4.proto == 17:
+
                 udp = UDP(ipv4.data)
                 print(TAB_2 + 'UDP Segment:')
                 print(TAB_3 + 'Source Port: {}, Destination Port: {}, Length: {}'.format(
