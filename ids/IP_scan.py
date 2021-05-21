@@ -1,4 +1,4 @@
-from ..protocols.ipv4 import IPv4
+#from ..protocols.ipv4 import IPv4
 from general.config import *
 
 class IP_Scan:

@@ -1,4 +1,4 @@
-from ..protocols.tcp import TCP
+#from ..protocols.tcp import TCP
 from general.config import *
 
 class TCP_Scan:
