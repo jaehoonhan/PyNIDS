@@ -6,7 +6,10 @@ class IP_Scan:
     def __init__(self, filename):
         with open(filename) as f:
             self.bad_ips = f.readlines()
-        self.bap_ips = [x.strip() for x in self.bad_ips] 
+        # strip() works differently on linux, don't change the below
+        for x in range(len(self.bad_ips)):
+            self.bad_ips[x] = self.bad_ips[x].strip()
+        # self.bap_ips = [x.strip() for x in self.bad_ips] 
     
     def check_bad_ip(self, ipv4):
         check = False
