@@ -14,10 +14,10 @@ class IP_Scan:
     def check_bad_ip(self, ipv4):
         check = False
         if ipv4.src in self.bad_ips:
-            print(TAB_1 + "**WARNING: POTENTIALLY MALICIOUS SOURCE IP**")
+            print(DATA_TAB_1 + "**WARNING: POTENTIALLY MALICIOUS SOURCE IP**")
             check = True
         if ipv4.target in self.bad_ips:
-            print(TAB_1 + "**WARNING: POTENTIALLY MALICIOUS TARGET IP**")
+            print(DATA_TAB_1 + "**WARNING: POTENTIALLY MALICIOUS TARGET IP**")
             check = True
         
         return check
