@@ -11,10 +11,10 @@ class TCP_Scan:
     def check_bad_port(self, tcp):
         check = False
         if tcp.src_port in self.bad_ports:
-            print(TAB_1 + "**WARNING: POTENTIALLY MALICIOUS SOURCE PORT**")
+            print(DATA_TAB_1 + "**WARNING: POTENTIALLY MALICIOUS SOURCE PORT**")
             check = True
         if tcp.dest_port in self.bad_ports:
-            print(TAB_1 + "**WARNING: POTENTIALLY MALICIOUS TARGET PORT**")
+            print(DATA_TAB_1 + "**WARNING: POTENTIALLY MALICIOUS TARGET PORT**")
             check = True
         
         return check
